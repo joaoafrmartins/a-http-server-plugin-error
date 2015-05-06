@@ -1,0 +1,23 @@
+{
+  "name": "a-http-server-plugin-error",
+  "version": "0.0.0",
+  "main": "lib",
+  "description": "A Http Server Plugin Error",
+  "keywords": [
+    "a",
+    "http",
+    "server",
+    "plugin",
+    "error"
+  ],
+  "dependencies": {},
+  "devDependencies": {},
+  "homepage": "https://github.com/joaoafrmartins/a-http-server-plugin-error",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joaoafrmartins/a-http-server-plugin-error.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joaoafrmartins/a-http-server-plugin-error/issues"
+  }
+}
