@@ -1,4 +1,5 @@
 module.exports =
+  'includeStack': true
   'status':
     200: 'OK'
     201: 'Created'

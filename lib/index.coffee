@@ -1,3 +1,5 @@
+errors = require 'errors'
+
 configFn = require 'a-http-server-config-fn'
 
 module.exports = (next) ->
@@ -6,58 +8,62 @@ module.exports = (next) ->
 
   config = @config.plugins.error
 
-  error = (options) ->
+  if config.includeStack then errors.stacks(true)
 
-    err = { status: 500, message: config.status['500'] }
+  defineError = (statusCode, message, name) ->
 
-    if typeof options is "number"
+    name ?= "AHttpServer#{statusCode}Error"
 
-      err.status = options
+    if not errors.find(name)
 
-      err.message =  config.status[options]
+      errors.create
 
-    else
+        name: name
 
-      err = options
+        status: statusCode
 
-    err
+        defaultMessage: message
 
-  Object.defineProperty @, "error", value: { define: error }
+  Object.keys(@config.plugins.error.status).map (statusCode) =>
 
-  Object.keys(config?.errors or {}).map (name) =>
+    message = @config.plugins.error.status[statusCode]
 
-    Object.defineProperty @error, name,
+    defineError statusCode, message
 
-      get: =>
-
-        err = error name
-
-        err = new Error err.message
-
-        err.name = name
-
-        err.status = err.status
-
-        err
-
-  @app.use (err, req, res, next) =>
-
-    err = error err.name
-
-    res.send err.status, err.message
+  started = false
 
   process.on "a-http-server:started", () =>
 
-    errors = @config.plugins.error.errors
+    if started then return null
 
-    Object.keys(errors or {}).map (name) =>
+    started = true
 
-      @error.define errors[name]
+    ["plugins", "components"].map (key) =>
+
+      Object.keys(@config[key]).map (extension) =>
+
+        if errs = @config[key][extension].errors
+
+          Object.keys(errs).map (name) =>
+
+            if typeof errs[name] is "object"
+
+              { status, message } = errs[name]
+
+            else if typeof errs[name] is "string"
+
+              status = 500
+
+              message = errs[name]
+
+            defineError status, message, name
 
   process.on "a-http-server:shutdown:dettach", () =>
 
     process.emit "a-http-server:shutdown:dettached", "error"
 
   process.emit "a-http-server:shutdown:attach", "error"
+
+  Object.defineProperty @, "error", value: errors
 
   next null
